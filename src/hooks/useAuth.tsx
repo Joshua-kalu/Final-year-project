@@ -26,8 +26,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const DEV_FORCE_AUTH = import.meta.env.VITE_DEV_FORCE_AUTH === "true";
+  const DEV_USER_ID = import.meta.env.VITE_DEV_USER_ID ?? "dev-uid-jkalu";
+  const DEV_USER_EMAIL = import.meta.env.VITE_DEV_USER_EMAIL ?? "jkalu2212@example.com";
 
   useEffect(() => {
+    if (DEV_FORCE_AUTH) {
+      setUser({ id: DEV_USER_ID, email: DEV_USER_EMAIL, user_metadata: { username: 'jkalu2212', full_name: 'Joshua' } } as unknown as User);
+      setSession(null);
+      setLoading(false);
+      return;
+    }
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {

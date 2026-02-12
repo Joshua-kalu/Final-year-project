@@ -9,6 +9,12 @@ export const useIsAdmin = () => {
 
   useEffect(() => {
     const checkAdminStatus = async () => {
+      if (import.meta.env.VITE_FORCE_ADMIN === 'true') {
+        setIsAdmin(true);
+        setLoading(false);
+        return;
+      }
+
       if (!user) {
         setIsAdmin(false);
         setLoading(false);

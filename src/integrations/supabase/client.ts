@@ -8,10 +8,45 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+let supabaseClient = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
   }
 });
+
+// Dev-only: allow running without a backend by setting VITE_NO_BACKEND=true
+if (import.meta.env.VITE_NO_BACKEND === 'true') {
+  const stub = {
+    auth: {
+      onAuthStateChange: (cb: any) => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      getSession: async () => ({ data: { session: null } }),
+      signUp: async (_opts: any) => ({ data: { user: null }, error: null }),
+      signInWithPassword: async (_creds: any) => ({ error: null }),
+      signOut: async () => ({ error: null }),
+    },
+    from: (_table: string) => ({
+      select: (_cols?: any) => ({
+        eq: async (_col: any, _val: any) => ({ data: [], error: null }),
+        maybeSingle: async () => ({ data: null, error: null }),
+      }),
+      insert: async (_payload: any) => ({ data: _payload ? [_payload] : null, error: null }),
+      delete: () => ({ eq: async (_col: any, _val: any) => ({ data: null, error: null }) }),
+    }),
+    functions: {
+      invoke: async (_name: string, _opts?: any) => ({ data: null, error: null }),
+    },
+  } as unknown as typeof supabase;
+
+  supabaseClient = stub;
+}
+
+export const supabase = supabaseClient;
+
+export const dev = {
+  forceAuth: true,
+  userId: 'dev-uid-jkalu',
+  userEmail: 'jkalu2212@example.com',
+  forceAdmin: true
+};
