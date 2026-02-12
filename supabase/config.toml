@@ -1,0 +1,7 @@
+project_id = "ceeltjepurtitylaoole"
+
+[functions.ai-assistant]
+verify_jwt = false
+
+[functions.send-appointment-email]
+verify_jwt = true
